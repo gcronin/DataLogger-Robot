@@ -25,6 +25,10 @@ for reading the results through the Serial Terminal.)
 #include <SD.h>
 
 const int chipSelect = 10;
+const int errorSDCardLED = 6;
+const int powerLED = 5;
+const int writeToFileLED = 4;
+const int errorDataFileLED = 7;
 
 int VRaw; //This will store our raw ADC data
 int IRaw;
@@ -33,6 +37,10 @@ float IFinal;
 
 void setup() {
 
+digitalWrite(errorDataFileLED, LOW);
+digitalWrite(powerLED, HIGH);  // power LED
+digitalWrite(writeToFileLED, LOW);
+digitalWrite(errorSDCardLED, LOW);
 
 Serial.begin(9600);
 Serial.print("Initializing SD card...");
@@ -40,6 +48,7 @@ Serial.print("Initializing SD card...");
   // see if the card is present and can be initialized:
   if (!SD.begin(chipSelect)) {
     Serial.println("Card failed, or not present");
+    digitalWrite(errorSDCardLED, HIGH);  //red light comes on if no card.
     // don't do anything more:
     return;
   }
@@ -81,14 +90,20 @@ void loop() {
     dataFile.close();
     // print to the serial port too:
     Serial.println(dataString);
+    toggle(writeToFileLED);
   }
   // if the file isn't open, pop up an error:
   else {
     Serial.println("error opening datalog.txt");
+    digitalWrite(errorDataFileLED, HIGH);
+    
   }
   delay(200);
   
   
 }
 
-
+void toggle(int pin)
+{
+  digitalWrite(pin, !digitalRead(pin));
+}
